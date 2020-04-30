@@ -41,7 +41,10 @@ include_directories(${BOARD_SYSROOT}/usr/local/include)
 ##    HINTS "${BOARD_SYSROOT}/usr/lib/arm-linux-gnueabihf"
 ##)
 
-set(CMAKE_CXX_FLAGS "-DVEC_SIZE=4 ${CMAKE_CXX_FLAGS} -fPIC -std=c++11 --sysroot=${BOARD_SYSROOT} -Wl,--no-as-needed")
+set(VEC_SIZE "8")
+set(BLOCK_X "256")
+
+set(CMAKE_CXX_FLAGS "-DVEC_SIZE=${VEC_SIZE} ${CMAKE_CXX_FLAGS} -fPIC -std=c++11 --sysroot=${BOARD_SYSROOT} -Wl,--no-as-needed")
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS}")
 
 add_executable(host_pipe_cnn host/pipe_cnn.cpp)
@@ -49,6 +52,7 @@ target_link_libraries(host_pipe_cnn ${IntelFPGAOpenCL_LIBRARIES}
     z opencv_core opencv_imgproc opencv_imgcodecs png pthread)
 
 function(opencl_target KERNEL_NAME)
+    set(AOCX_NAME ${KERNEL_NAME}_vec${VEC_SIZE}_width${BLOCK_X}.cl)
     set(KERNEL_FILE ${CMAKE_CURRENT_SOURCE_DIR}/device/${KERNEL_NAME}.cl)
     set(AOC_COMMAND
         -I${CMAKE_CURRENT_SOURCE_DIR}/include
@@ -58,31 +62,22 @@ function(opencl_target KERNEL_NAME)
         -cl-fast-relaxed-math
         -cl-single-precision-constant
         -board=${HLSLIB_BOARD_NAME}
-        -DVEC_SIZE=4
-        -DBLOCK_X=512
+        -DVEC_SIZE=${VEC_SIZE}
+        -DBLOCK_X=${BLOCK_X}
         ${KERNEL_FILE})
     add_custom_target(build_${KERNEL_NAME}_report
         COMMAND ${IntelFPGAOpenCL_AOC}
         ${AOC_COMMAND}
         -report)
-    add_custom_command(
-        OUTPUT ${KERNEL_NAME}_emulator.aocx
+    add_custom_target(build_${KERNEL_NAME}_profile
         COMMAND ${IntelFPGAOpenCL_AOC}
-        ${AOC_COMMAND} -march=emulator
-        -emulator-channel-depth-model=strict
-        -o ${KERNEL_NAME}_emulator.aocx
-        DEPENDS ${KERNEL_FILE})
-    add_custom_target(build_${KERNEL_NAME}_emulator ALL DEPENDS
-        ${KERNEL_NAME}_emulator.aocx)
+        ${AOC_COMMAND}
+        -report
+        -profile)
     add_custom_target(build_${KERNEL_NAME}_hardware
         COMMAND ${IntelFPGAOpenCL_AOC}
-        ${AOC_COMMAND} -o ${KERNEL_NAME}_hardware.aocx)
-    add_custom_target(run_${KERNEL_NAME}_hardware COMMAND
-        ${CMAKE_CURRENT_BINARY_DIR}/host_${KERNEL_NAME} hardware)
-    add_custom_target(run_${KERNEL_NAME}_emulator COMMAND
-        CL_CONTEXT_EMULATOR_DEVICE_INTELFPGA=1 ${CMAKE_CURRENT_BINARY_DIR}/host_${KERNEL_NAME}
-        emulator)
+        ${AOC_COMMAND} -o ${AOXC_NAME}_hardware.aocx)
     add_test(Test${KERNEL_NAME} COMMAND host_${KERNEL_NAME} emulator)
 endfunction()
 
-opencl_target("sobel")
+opencl_target("conv2d_v1")

@@ -21,7 +21,7 @@ namespace {
 
 // Error functions
 void printError(cl_int error);
-void _checkError(int line, const char *file, cl_int error, const char *msg,
+void _checkError(int line, const char* file, cl_int error, const char* msg,
                  ...);  // does not return
 #define EXIT_ON_ERROR(status, ...) \
     _checkError(__LINE__, __FILE__, status, __VA_ARGS__)
@@ -182,7 +182,7 @@ void printError(cl_int error) {
 
 // Print line, file name, and error code if there is an error. Exits the
 // application upon error.
-void _checkError(int line, const char *file, cl_int error, const char *msg,
+void _checkError(int line, const char* file, cl_int error, const char* msg,
                  ...) {
     // If not successful
     if (error != CL_SUCCESS) {
@@ -204,19 +204,19 @@ void _checkError(int line, const char *file, cl_int error, const char *msg,
     }
 }
 
-const char *kern_r1w1_read = "r1w1_read";
-const char *kern_r1w1_write = "r1w1_write";
-const char *kern_sobel = "sobel";
-const char *kern_read = "read";
-const char *kern_write = "write";
-const char *kern_conv2d = "conv2d";
+const char* kern_r1w1_read = "r1w1_read";
+const char* kern_r1w1_write = "r1w1_write";
+const char* kern_sobel = "sobel";
+const char* kern_read = "read";
+const char* kern_write = "write";
+const char* kern_conv2d = "conv2d";
 
 using Data_t = std::float_t;
 
 template <typename TimeT = std::chrono::milliseconds>
 struct measure {
     template <typename F, typename... Args>
-    static typename TimeT::rep execution(F &&func, Args &&... args) {
+    static typename TimeT::rep execution(F&& func, Args&&... args) {
         auto start = std::chrono::steady_clock::now();
         std::forward<decltype(func)>(func)(std::forward<Args>(args)...);
         auto duration = std::chrono::duration_cast<TimeT>(
@@ -225,7 +225,7 @@ struct measure {
     }
 };
 
-std::vector<std::uint8_t> program_buf_load(const std::string &path) {
+std::vector<std::uint8_t> program_buf_load(const std::string& path) {
     std::ifstream file(path, std::ios::binary | std::ios::in | std::ios::ate);
 
     uint32_t size = file.tellg();
@@ -233,14 +233,14 @@ std::vector<std::uint8_t> program_buf_load(const std::string &path) {
 
     std::vector<std::uint8_t> buf(size);
 
-    file.read((std::basic_istream<char>::char_type *)buf.data(), buf.size());
+    file.read((std::basic_istream<char>::char_type*)buf.data(), buf.size());
     file.close();
 
     return buf;
 }
 
-cl::Program program_make(cl::Context &ctx, std::vector<cl::Device> &devices,
-                         const std::string &path) {
+cl::Program program_make(cl::Context& ctx, std::vector<cl::Device>& devices,
+                         const std::string& path) {
     auto buf = program_buf_load(path);
 
     cl_int status;
@@ -276,8 +276,8 @@ cl::Program program_make(cl::Context &ctx, std::vector<cl::Device> &devices,
 }
 
 template <typename T>
-cl::Buffer shared_buffer_make(cl::Context &ctx, cl::CommandQueue &queue,
-                              std::size_t num, T **host_ptr) {
+cl::Buffer shared_buffer_make(cl::Context& ctx, cl::CommandQueue& queue,
+                              std::size_t num, T** host_ptr) {
     cl_int status;
     cl_mem_flags flags = 0;
 
@@ -289,16 +289,16 @@ cl::Buffer shared_buffer_make(cl::Context &ctx, cl::CommandQueue &queue,
     EXIT_ON_ERROR(status, "Failed to create buffer");
     assert(host_ptr != NULL);
 
-    *host_ptr = (T *)queue.enqueueMapBuffer(
-        device_ptr, CL_TRUE, CL_MAP_WRITE | CL_MAP_READ, 0, size);
+    *host_ptr = (T*)queue.enqueueMapBuffer(device_ptr, CL_TRUE,
+                                           CL_MAP_WRITE | CL_MAP_READ, 0, size);
     assert(*host_ptr != NULL);
 
     return device_ptr;
 }
 
 template <typename T>
-cl_int shared_buffer_release(cl::CommandQueue &queue, cl::Buffer &sh_buf,
-                             T **host_ptr) {
+cl_int shared_buffer_release(cl::CommandQueue& queue, cl::Buffer& sh_buf,
+                             T** host_ptr) {
     cl_int status;
 
     status = queue.enqueueUnmapMemObject(sh_buf, *host_ptr);
@@ -308,7 +308,7 @@ cl_int shared_buffer_release(cl::CommandQueue &queue, cl::Buffer &sh_buf,
 }
 
 template <typename T>
-void kernel_args_set(cl::Kernel &kernel, size_t index, T &&arg) {
+void kernel_args_set(cl::Kernel& kernel, size_t index, T&& arg) {
     auto status = kernel.setArg(index, arg);
     EXIT_ON_ERROR(status, "failed to set kernel args");
 }
@@ -318,12 +318,12 @@ void kernel_args_set(size_t) {}
 void kernel_args_set() {}
 
 template <typename T, typename... Ts>
-void kernel_args_set(cl::Kernel &kernel, size_t index, T &&arg, Ts &&... args) {
+void kernel_args_set(cl::Kernel& kernel, size_t index, T&& arg, Ts&&... args) {
     kernel_args_set(kernel, index, std::forward<T>(arg));
     kernel_args_set(kernel, index + 1, std::forward<Ts>(args)...);
 }
 
-void profiling_time_print(cl::Event &event, const char *title) {
+void profiling_time_print(cl::Event& event, const char* title) {
     cl_int status;
     cl_ulong s_time, e_time;
 
@@ -337,8 +337,8 @@ void profiling_time_print(cl::Event &event, const char *title) {
     printf("%s: took:(%.5f ms)\n", title, time_ms);
 }
 
-void mem_throuput_test(cl::Device &dev, cl::Context &ctx, cl::Program &prog,
-                       const char *arg) {
+void mem_throuput_test(cl::Device& dev, cl::Context& ctx, cl::Program& prog,
+                       const char* arg) {
     cl_int status;
     std::int32_t test_size = 1024 * 1024 * 4;
 
@@ -356,10 +356,10 @@ void mem_throuput_test(cl::Device &dev, cl::Context &ctx, cl::Program &prog,
     cl::CommandQueue out_queue(ctx, dev, 0, &status);
     EXIT_ON_ERROR(status, "failed to create queue");
 
-    std::uint32_t *host_input;
+    std::uint32_t* host_input;
     auto dev_in_buf = shared_buffer_make(ctx, in_queue, test_size, &host_input);
 
-    std::uint32_t *host_output;
+    std::uint32_t* host_output;
     auto dev_out_buf =
         shared_buffer_make(ctx, out_queue, test_size, &host_output);
 
@@ -392,8 +392,8 @@ void mem_throuput_test(cl::Device &dev, cl::Context &ctx, cl::Program &prog,
     printf("mem test ok\n");
 }
 
-void sobel_filter_test(cl::Device &dev, cl::Context &ctx, cl::Program &prog,
-                       const char *img_path, std::uint32_t threshold) {
+void sobel_filter_test(cl::Device& dev, cl::Context& ctx, cl::Program& prog,
+                       const char* img_path, std::uint32_t times) {
     cl_int status;
     std::int32_t h, w;
 
@@ -423,21 +423,31 @@ void sobel_filter_test(cl::Device &dev, cl::Context &ctx, cl::Program &prog,
     cl::CommandQueue wqueue(ctx, dev, 0, &status);
     EXIT_ON_ERROR(status, "failed to create wqueue");
 
-    std::int32_t *host_in;
-    std::int32_t *host_out;
+    std::int32_t* host_in;
+    std::int32_t* host_w;
+    std::int32_t* host_out;
 
     auto dev_in = shared_buffer_make(ctx, rqueue, in_img.total(), &host_in);
-    auto dev_out = shared_buffer_make(ctx, wqueue, in_img.total(), &host_out);
-
     std::memcpy(host_in, in_img.data, size_b);
 
-    kernel_args_set(kread, 0, dev_in, std::int32_t(512),
-                    std::int32_t(in_img.total() / VEC_SIZE));
+    auto dev_w = shared_buffer_make(ctx, rqueue, 9, &host_w);
+    std::int32_t lapl[] = {-1, -1, -1, -1, 8, -1, -1, -1, -1};
+    for (auto i = 0; i < 9; ++i) {
+        host_w[i] = lapl[i];
+    }
 
-    kernel_args_set(kconv2d, 0, std::int32_t(in_img.total() / VEC_SIZE));
+    auto dev_out = shared_buffer_make(ctx, wqueue, in_img.total(), &host_out);
 
-    kernel_args_set(kwrite, 0, dev_out, std::int32_t(512),
-                    std::int32_t(in_img.total() / VEC_SIZE));
+    kernel_args_set(kread, 0, dev_in, dev_w,
+                    std::int32_t(in_img.total() / VEC_SIZE),
+                    std::int32_t(times));
+
+    kernel_args_set(kconv2d, 0, std::int32_t(in_img.total() / VEC_SIZE),
+                    std::int32_t(times));
+
+    kernel_args_set(kwrite, 0, dev_out,
+                    std::int32_t(in_img.total() / VEC_SIZE),
+                    std::int32_t(times));
 
     cl::Event revent;
     cl::Event wevent;
@@ -471,7 +481,7 @@ void sobel_filter_test(cl::Device &dev, cl::Context &ctx, cl::Program &prog,
 
 }  // namespace
 
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
     cl_int err = CL_SUCCESS;
     try {
         cl_int status;
@@ -490,7 +500,7 @@ int main(int argc, char **argv) {
 
         std::vector<cl::Device> devices = context.getInfo<CL_CONTEXT_DEVICES>();
 
-        for (const auto &dev : devices) {
+        for (const auto& dev : devices) {
             cl_int status = 0;
             auto caps = dev.getInfo(CL_DEVICE_SVM_CAPABILITIES, &status);
             if (status != CL_SUCCESS) {
@@ -508,7 +518,7 @@ int main(int argc, char **argv) {
                               std::atoi(argv[4]));
         }
 
-    } catch (const cl::Error &err) {
+    } catch (const cl::Error& err) {
         std::cerr << "ERROR: " << err.what() << "(" << err.err() << ")"
                   << std::endl;
     }

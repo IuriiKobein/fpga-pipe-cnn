@@ -79,7 +79,7 @@ __kernel void conv2d(int exit_cond) {
         int k4[3][3] = {{-1, -1, -1}, {-1, 8, -1}, {-1, -1, -1}};
 
         // shift register of 2 rows plus filter width(w=h) and size of input vector
-        int sr_conv[SR_CO k1_acc + k2_acc + k3_acc + k4_acc
+        int sr_conv[SR_CONV_VEC_SIZE];
         // initialize
         #pragma unroll
         for (int i = 0; i < SR_CONV_VEC_SIZE; ++i) {
