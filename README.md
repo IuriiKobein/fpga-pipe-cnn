@@ -13,4 +13,14 @@ is implemted using OpenCL as HSL for Intel FPGA.
 On each iteration new 8 elements vector of input are inserted into hardware shift register by discading the oldest 8 element vector.
 Convolution is unrolled to completly flat inner filter convolution
 
+# sobel_filter
 
+test sobel by using four methods : arm , neon , opencl on Intel FPGA(Cyclone V)
+
+![](res/test.png)
+
+| Methods              | Frequency |  Time     |
+| :--------            |:---------:|:---------:|
+| Cortex-A9            | 800Mhz    | 168ms     |
+| Neon                 |           | 37ms      |
+| OpenCL on Cyclone V  | 140Mhz    | 2,56ms    |
