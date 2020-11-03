@@ -140,7 +140,7 @@ conv2d(int exit_cond, int times) {
                         k0_acc += pixel * weight;
                     }
                 }
-
+                
                 // store results of convolution
                 vec_out.data[k] = k0_acc;
             }
