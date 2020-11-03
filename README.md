@@ -12,3 +12,5 @@ is implemted using OpenCL as HSL for Intel FPGA.
 
 On each iteration new 8 elements vector of input are inserted into hardware shift register by discading the oldest 8 element vector.
 Convolution is unrolled to completly flat inner filter convolution
+
+
