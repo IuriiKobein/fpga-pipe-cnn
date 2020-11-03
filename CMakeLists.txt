@@ -61,6 +61,7 @@ function(opencl_target KERNEL_NAME)
         -cl-no-signed-zeros
         -cl-fast-relaxed-math
         -cl-single-precision-constant
+        -no-interleaving=default
         -board=${HLSLIB_BOARD_NAME}
         -DVEC_SIZE=${VEC_SIZE}
         -DBLOCK_X=${BLOCK_X}
