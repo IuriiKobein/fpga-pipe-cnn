@@ -131,14 +131,16 @@ conv2d(int exit_cond, int times) {
                 // perform convolutions for Gx and Gy
 #pragma unroll
                 for (int i = 0; i < FILTER_W; ++i) {
+                  int x_base = i * BLOCK_X;
+                  int filter_base = i * FILTER_W;
 #pragma unroll
                     for (int j = 0; j < FILTER_W; ++j) {
-                        int pixel = sr_conv[i * BLOCK_X + j + k];
-                        int weight = k0.data[i * FILTER_W + j];
+                        int pixel = sr_conv[x_base + j + k];
+                        int weight = k0.data[filter_base + j];
                         k0_acc += pixel * weight;
                     }
                 }
-
+                
                 // store results of convolution
                 vec_out.data[k] = k0_acc;
             }
